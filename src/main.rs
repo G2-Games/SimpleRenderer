@@ -92,8 +92,21 @@ impl Sprite {
     }
 
     fn get_sprite_sheet(&self) -> &DynamicImage {
-        let sheet = &self.sprite_sheet.texture;
-        return sheet;
+        return &self.sprite_sheet.texture;
+    }
+
+    fn flip_sprite(&mut self) -> bool {
+        if self.facing_left == false {
+            self.facing_left = true;
+        } else {
+            self.facing_left = false;
+        }
+
+        return true;
+    }
+
+    fn facing_left(&self) -> bool {
+        return self.facing_left;
     }
 }
 
@@ -206,6 +219,12 @@ impl World {
         if self.sprites[0].velocity.0.abs() < 0.3 {
             self.sprites[0].velocity.0 = 0.0;
         }
+
+        if self.sprites[0].velocity.0 < 0.0 {
+            self.sprites[0].facing_left = true;
+        } else {
+            self.sprites[0].facing_left = false;
+        }
     }
 
     // TODO this is bad, completely refactor
@@ -270,8 +289,26 @@ impl World {
 
             // Loop through all pixels in a sprite
             for z in 0..(self.sprites[i].size.0 * self.sprites[i].size.1) as usize {
-                let x = (z % self.sprites[i].size.0 as usize) as i16;
+                let x = (z % self.sprites[i].size.0 as usize) as u16;
                 let y = (z / self.sprites[i].size.0 as usize) as u16;
+
+                let colors:Rgba<u8>;
+
+                // Get the current sprite's pixel
+                let x_coord;
+                if self.sprites[i].facing_left() {
+                    x_coord = -(x as i16) + self.sprites[i].size.0 as i16;
+                } else {
+                    x_coord = x as i16;
+                }
+
+                colors = self.sprites[i].get_sprite_sheet().get_pixel(
+                    (x_coord + offset.0 as i16) as u32,
+                    (y + offset.1) as u32);
+
+                if colors[3] == 0 {
+                    continue;
+                }
 
                 let viewport_y = (y as i32 + self.sprites[i].position.1 as i32) * WORLD_WIDTH as i32;
                 let viewport_x = x as i32 + self.sprites[i].position.0 as i32;
@@ -282,16 +319,10 @@ impl World {
                 if index <= ((WORLD_WIDTH * WORLD_HEIGHT) * 4) as usize {
                     world_pixel = &mut frame[index..index + 4];
                 } else {
-                    world_pixel = &mut frame[0..4];
+                    continue;
                 }
 
-                let colors:Rgba<u8>;
                 let mut output:[u8; 4] = [0, 0, 0, 0];
-
-                // Get the current sprite's pixel
-                colors = self.sprites[i].get_sprite_sheet().get_pixel(
-                    (x as u16 + offset.0) as u32,
-                    (y as u16 + offset.1) as u32);
 
                 // Create proper alpha blending for each color
                 for c in 0..3 {
