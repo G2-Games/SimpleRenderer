@@ -1,0 +1,21 @@
+[package]
+    name = "rustpixels"
+    version = "0.1.0"
+    edition = "2021"
+    authors = ["Grant Gardner"]
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+    env_logger = "0.10"
+    futures = "0.3.26"
+    image = "0.24.5"
+    log = "0.4"
+    pixels = "0.11.0"
+    prelude = "0.2.1"
+    rand = "0.8.5"
+    rapier2d = "0.17.1"
+    waitfor = "0.1.0"
+    winit = "0.27"
+    winit_input_helper = "0.13"
